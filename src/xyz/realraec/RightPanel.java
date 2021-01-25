@@ -2,6 +2,7 @@ package xyz.realraec;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
@@ -10,15 +11,25 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Locale;
 import javax.imageio.ImageIO;
 import javax.net.ssl.HttpsURLConnection;
+import javax.swing.Action;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
@@ -32,9 +43,17 @@ public class RightPanel extends JPanel {
     }
 
     // CARD (IMAGE)
-    Elements images = inputDocument.select("img[src~=(_Card)\\.(png)]");
+    //Elements images = inputDocument.select("img[src~=(_Card)\\.(png)]");
+    Elements images = inputDocument.select("img[src~=\\.(png)]");
+    String skinName = inputDocument.title()
+        .substring(0, inputDocument.title().indexOf("voicelines") - 1).trim();
+    String skinAddress = inputDocument.location();
+
     String urlCard = images.attr("src");
     urlCard = urlCard.substring(0, urlCard.lastIndexOf("/revision/"));
+    /*String urlIcon = inputDocument.select("link[href~=\\.(ico)]").attr("href");
+    System.out.println(urlIcon);
+    urlIcon = urlIcon.substring(0, urlIcon.lastIndexOf("/revision/"));*/
 
     JPanel rightPanel = new JPanel(new BorderLayout());
     rightPanel.setPreferredSize(new Dimension(264, 0));
@@ -52,45 +71,102 @@ public class RightPanel extends JPanel {
 
     // SEARCH
     JPanel searchPanel = new JPanel(new BorderLayout());
+    JButton openInNewButton = new JButton("⚶");
+    openInNewButton.setFocusPainted(false);
+    openInNewButton.setContentAreaFilled(false);
+    openInNewButton.setBorder(null);
+    openInNewButton.setPreferredSize(new Dimension(25, 0));
+
+    openInNewButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        if (Desktop.isDesktopSupported() && Desktop.getDesktop()
+            .isSupported(Desktop.Action.BROWSE)) {
+          try {
+            Desktop.getDesktop().browse(new URI(skinAddress));
+          } catch (IOException | URISyntaxException ioException) {
+            ioException.printStackTrace();
+          }
+        }
+      }
+    });
+    searchPanel.add(openInNewButton, BorderLayout.WEST);
+
     JTextField searchField = new JTextField();
-    JButton searchButton = new JButton("Link");
-    searchField.setText(inputDocument.location());
+    searchField.setHorizontalAlignment(0);
+    searchField.setText(skinName);
     searchPanel.add(searchField, BorderLayout.CENTER);
+
+    JButton searchButton = new JButton("Load");
     searchButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         String userInput = searchField.getText().trim();
+
+        // If given an address: extract name
         if (userInput.startsWith("https://smite.gamepedia.com/")
-            && userInput.endsWith("_voicelines")
-            && !userInput.equals(inputDocument.location())
-        ) {
+            && userInput.endsWith("_voicelines")) {
+          userInput = userInput.substring(28);
+          userInput = userInput.substring(0, userInput.length() - 11);
+          userInput = userInput.replaceAll("_", " ");
+        }
 
-          int code = 0;
-          try {
-            URL possibleUrl = new URL(userInput);
-            HttpsURLConnection httpsURLConnection = (HttpsURLConnection) possibleUrl
-                .openConnection();
-            httpsURLConnection.setRequestMethod("GET");
-            httpsURLConnection.connect();
-            code = httpsURLConnection.getResponseCode();
-          } catch (IOException malformedURLException) {
-            malformedURLException.printStackTrace();
-          }
+        // First letter capitalized
+        char[] userInputArray = userInput.toLowerCase().toCharArray();
+        userInputArray[0] = (char) (userInputArray[0] - 32);
+        userInput = String.valueOf(userInputArray);
 
-          if (code == 200) {
-            try {
-              Document newDocument = MainFrame.initDocument(userInput);
-              System.out.println("Fetching " + userInput);
-              frame.initTitle(newDocument);
-              MainFrame.setRightPanel(RightPanel.initRightPanel(frame, newDocument));
-              MainFrame.setLeftPanel(LeftPanel.initLeftPanel(frame,newDocument));
-              MainFrame.getMainPanel().revalidate();
-            } catch (IOException ioException) {
-              ioException.printStackTrace();
-            }
-          } else {
-            JOptionPane.showMessageDialog(null, "Make sure you've entered a valid link.");
-          }
+        // Special cases 1/2
+        if (userInput.contains(".bat")) {
+          userInput = userInput.replace(".bat", ".BAT");
+        }
+        if (userInput.contains(".dmg")) {
+          userInput = userInput.replace(".dmg", ".DMG");
+        }
+        if (userInput.contains(".exe")) {
+          userInput = userInput.replace(".exe", ".EXE");
+        }
+        if (userInput.contains(".god")) {
+          userInput = userInput.replace(".god", ".GOD");
+        }
+        if (userInput.contains(".rar")) {
+          userInput = userInput.replace(".rar", ".RAR");
+        }
+
+        // Any letter after a blank space capitalized
+        while (userInput.contains(" ")) {
+          int indexToBeChanged = userInput.indexOf(" ");
+          String toBeChanged = userInput.substring(indexToBeChanged, indexToBeChanged + 2);
+          userInput = userInput.replace(toBeChanged, toBeChanged.toUpperCase().replace(" ", "_"));
+        }
+
+        // Special cases 2/2
+        if (userInput.contains("_Of_")) {
+          userInput = userInput.replace("_Of_", "_of_");
+        }
+        if (userInput.contains("_The_")) {
+          userInput = userInput.replace("_The_", "_the_");
+        }
+        if (userInput.contains("G.o.a.t")) {
+          userInput = userInput.replace("G.o.a.t", "G.O.A.T");
+        }
+        if (userInput.contains("M.o.u.s.e")) {
+          userInput = userInput.replace("M.o.u.s.e", "M.O.U.S.E");
+        }
+        if (userInput.contains("G.e.b")) {
+          userInput = userInput.replace("G.e.b", "G.E.B");
+        }
+        if (userInput.contains("G.i.z")) {
+          userInput = userInput.replace("G.i.z", "G.I.Z");
+        }
+        //System.out.println("\t\t\t\t\tfinalUserInput: " + userInput);
+
+        // If not address, logically given a name
+        if (!userInput.equals("") && !userInput.equals(skinName)) {
+          userInput = "https://smite.gamepedia.com/" + userInput + "_voicelines";
+        }
+        if (!userInput.equals(skinAddress)) {
+          performSearch(frame, userInput);
         }
       }
     });
@@ -113,10 +189,37 @@ public class RightPanel extends JPanel {
       }
     });
     rightPanel.add(searchPanel, BorderLayout.SOUTH);
-
     MainFrame.getMainPanel().add(rightPanel, BorderLayout.EAST);
     return rightPanel;
   }
 
+  private static void performSearch(MainFrame frame, String userInput) {
+    int code = 0;
+    try {
+      URL possibleUrl = new URL(userInput);
+      HttpsURLConnection httpsURLConnection = (HttpsURLConnection) possibleUrl
+          .openConnection();
+      httpsURLConnection.setRequestMethod("GET");
+      httpsURLConnection.connect();
+      code = httpsURLConnection.getResponseCode();
+    } catch (IOException ignored) {
+      return;
+    }
+    //System.out.println(code);
 
+    if (code == 200) {
+      try {
+        Document newDocument = MainFrame.initDocument(userInput);
+        System.out.println("Fetching " + userInput);
+        frame.initTitle(newDocument);
+        MainFrame.setRightPanel(RightPanel.initRightPanel(frame, newDocument));
+        MainFrame.setLeftPanel(LeftPanel.initLeftPanel(frame, newDocument));
+        MainFrame.getMainPanel().revalidate();
+      } catch (IOException ioException) {
+        ioException.printStackTrace();
+      }
+    } else {
+      JOptionPane.showMessageDialog(null, "Make sure you've entered a valid link or name.");
+    }
+  }
 }
