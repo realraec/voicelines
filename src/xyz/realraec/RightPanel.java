@@ -43,7 +43,9 @@ public class RightPanel extends JPanel {
     }
 
     // CARD (IMAGE)
-    //Elements images = inputDocument.select("img[src~=(_Card)\\.(png)]");
+    /*
+    Elements images = inputDocument.select("img[src~=(_Card)\\.(png)]");
+    */
     Elements images = inputDocument.select("img[src~=\\.(png)]");
     String skinName = inputDocument.title()
         .substring(0, inputDocument.title().indexOf("voicelines") - 1).trim();
@@ -69,14 +71,18 @@ public class RightPanel extends JPanel {
       e.printStackTrace();
     }
 
-    // SEARCH
+    /* -----------------------------------------------------
+    ----------------------------------------------------- */
+
+    // SEARCH PANEL
     JPanel searchPanel = new JPanel(new BorderLayout());
+
+    // OPEN IN NEW BUTTON
     JButton openInNewButton = new JButton("⚶");
     openInNewButton.setFocusPainted(false);
     openInNewButton.setContentAreaFilled(false);
     openInNewButton.setBorder(null);
     openInNewButton.setPreferredSize(new Dimension(25, 0));
-
     openInNewButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -92,11 +98,13 @@ public class RightPanel extends JPanel {
     });
     searchPanel.add(openInNewButton, BorderLayout.WEST);
 
+    // SEARCH FIELD
     JTextField searchField = new JTextField();
     searchField.setHorizontalAlignment(0);
     searchField.setText(skinName);
     searchPanel.add(searchField, BorderLayout.CENTER);
 
+    // SEARCH BUTTON
     JButton searchButton = new JButton("Load");
     searchButton.addActionListener(new ActionListener() {
       @Override
@@ -159,7 +167,7 @@ public class RightPanel extends JPanel {
         if (userInput.contains("G.i.z")) {
           userInput = userInput.replace("G.i.z", "G.I.Z");
         }
-        //System.out.println("\t\t\t\t\tfinalUserInput: " + userInput);
+        //System.out.println("\t\t\t\t\t finalUserInput: " + userInput);
 
         // If not address, logically given a name
         if (!userInput.equals("") && !userInput.equals(skinName)) {
@@ -190,11 +198,12 @@ public class RightPanel extends JPanel {
     });
     rightPanel.add(searchPanel, BorderLayout.SOUTH);
     MainFrame.getMainPanel().add(rightPanel, BorderLayout.EAST);
+
     return rightPanel;
   }
 
   private static void performSearch(MainFrame frame, String userInput) {
-    int code = 0;
+    int code;
     try {
       URL possibleUrl = new URL(userInput);
       HttpsURLConnection httpsURLConnection = (HttpsURLConnection) possibleUrl
@@ -210,7 +219,7 @@ public class RightPanel extends JPanel {
     if (code == 200) {
       try {
         Document newDocument = MainFrame.initDocument(userInput);
-        System.out.println("Fetching " + userInput);
+        //System.out.println("Fetching " + userInput);
         frame.initTitle(newDocument);
         MainFrame.setRightPanel(RightPanel.initRightPanel(frame, newDocument));
         MainFrame.setLeftPanel(LeftPanel.initLeftPanel(frame, newDocument));

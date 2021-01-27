@@ -8,6 +8,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 public class MainFrame extends JFrame {
+
   String url = "";
   private static final JPanel mainPanel = new JPanel(new BorderLayout());
   private static JPanel rightPanel = null;
@@ -20,7 +21,6 @@ public class MainFrame extends JFrame {
     this.setSize(1100, 410);
     this.setLocationRelativeTo(null);
     this.setLocation(100, 150);
-    //this.setResizable(false);
     this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
     // Document
