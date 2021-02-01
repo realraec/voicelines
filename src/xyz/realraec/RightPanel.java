@@ -219,7 +219,7 @@ public class RightPanel extends JPanel {
     if (code == 200) {
       try {
         Document newDocument = MainFrame.initDocument(userInput);
-        //System.out.println("Fetching " + userInput);
+        System.out.println("Fetching " + userInput);
         frame.initTitle(newDocument);
         MainFrame.setRightPanel(RightPanel.initRightPanel(frame, newDocument));
         MainFrame.setLeftPanel(LeftPanel.initLeftPanel(frame, newDocument));

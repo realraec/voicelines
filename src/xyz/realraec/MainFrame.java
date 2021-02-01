@@ -1,8 +1,12 @@
 package xyz.realraec;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.io.IOException;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -18,7 +22,8 @@ public class MainFrame extends JFrame {
   public MainFrame(String url) throws IOException {
     this.url = url;
 
-    this.setSize(1100, 410);
+    this.setSize(1100, 435);
+    this.setMinimumSize(new Dimension(850, 435));
     this.setLocationRelativeTo(null);
     this.setLocation(100, 150);
     this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -34,6 +39,9 @@ public class MainFrame extends JFrame {
 
     // Card and search
     rightPanel = RightPanel.initRightPanel(this, inputDocument);
+
+    // Menu bar
+    this.setJMenuBar(initMenuBar());
 
     this.setContentPane(mainPanel);
     this.setVisible(true);
@@ -74,5 +82,23 @@ public class MainFrame extends JFrame {
 
   public static JPanel getMainPanel() {
     return mainPanel;
+  }
+
+  private JMenuBar initMenuBar() {
+    JMenuBar menuBar = new JMenuBar();
+    JMenuItem godsListItem = new JMenuItem("Gods list");
+    JMenuItem skinsListItem = new JMenuItem("Skins list");
+    JMenu listsMenu = new JMenu("Lists");
+    listsMenu.add(godsListItem);
+    listsMenu.add(skinsListItem);
+    JMenuItem explorerItem = new JMenuItem("Explorer");
+    JMenuItem favoritesItem = new JMenuItem("Favorites");
+    JMenu singlesMenu = new JMenu("Viewer");
+    singlesMenu.add(explorerItem);
+    singlesMenu.add(favoritesItem);
+    menuBar.add(listsMenu);
+    menuBar.add(singlesMenu);
+
+    return menuBar;
   }
 }
