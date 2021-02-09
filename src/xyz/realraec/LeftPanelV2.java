@@ -23,9 +23,9 @@ public class LeftPanelV2 {
   protected static JPanel initLeftPanel(MainFrame frame, Document inputDocument) {
 
     // Reset to make the previous page disappear if there is one
-    if (frame.getLeftPanel() != null) {
+    /*if (frame.getLeftPanel() != null) {
       frame.removeLeftPanel();
-    }
+    }*/
 
     // TEXT
     JTextField textField = new JTextField();
@@ -527,7 +527,7 @@ public class LeftPanelV2 {
             new Thread(new Runnable() {
               @Override
               public void run() {
-                AudioFilePlayer.getInstance().play(finalAudioUrl);
+                AudioFilePlayerV1.getInstance().play(finalAudioUrl);
               }
             }).start();
           }
@@ -557,7 +557,7 @@ public class LeftPanelV2 {
     JPanel leftPanel = new JPanel(new BorderLayout());
     leftPanel.add(scrollButtonPane, BorderLayout.CENTER);
     leftPanel.add(textField, BorderLayout.NORTH);
-    MainFrame.getMainPanel().add(leftPanel, BorderLayout.CENTER);
+    //MainFrame.getMainPanel().add(leftPanel, BorderLayout.CENTER);
 
     return leftPanel;
   }

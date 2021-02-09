@@ -7,12 +7,20 @@ import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-public class MainFrame extends JFrame {
+public class MainFrameV1 extends JFrame {
 
-  public MainFrame(String url) throws IOException {
+  String url = "";
+  private static final JPanel mainPanel = new JPanel(new BorderLayout());
+  private static JPanel rightPanel = null;
+  private static JPanel leftPanel = null;
+
+
+  public MainFrameV1(String url) throws IOException {
+    this.url = url;
 
     this.setSize(1100, 435);
     this.setMinimumSize(new Dimension(850, 435));
@@ -27,46 +35,53 @@ public class MainFrame extends JFrame {
     initTitle(inputDocument);
 
     // Buttons and text
-    initLeftPanel(inputDocument);
+    //leftPanel = LeftPanel.initLeftPanel(this, inputDocument);
 
     // Card and search
-    initRightPanel(inputDocument);
+    //rightPanel = RightPanel.initRightPanel(this, inputDocument);
 
     // Menu bar
     this.setJMenuBar(initMenuBar());
 
+    this.setContentPane(mainPanel);
     this.setVisible(true);
   }
 
-  public Document initDocument(String url) throws IOException {
+  static Document initDocument(String url) throws IOException {
     return Jsoup.connect(url).get();
   }
 
-  public void initTitle(Document inputDocument) {
+  void initTitle(Document inputDocument) {
     String titleRaw = inputDocument.title();
     this.setTitle(titleRaw.substring(0, titleRaw.lastIndexOf(" - ")));
   }
 
-  public void initLeftPanel(Document inputDocument) {
-    // Check and reset to make the previous page disappear if there is one
-    BorderLayout layout = (BorderLayout)this.getContentPane().getLayout();
-    if (layout.getLayoutComponent(BorderLayout.CENTER) != null) {
-      this.getContentPane().remove(layout.getLayoutComponent(BorderLayout.CENTER));
-    }
-
-    LeftPanel leftPanel = new LeftPanel(inputDocument);
-    this.getContentPane().add(leftPanel, BorderLayout.CENTER);
+  public JPanel getLeftPanel() {
+    return leftPanel;
   }
 
-  public void initRightPanel(Document inputDocument) {
-    // Check and reset to make the previous page disappear if there is one
-    BorderLayout layout = (BorderLayout)this.getContentPane().getLayout();
-    if (layout.getLayoutComponent(BorderLayout.EAST) != null) {
-      this.getContentPane().remove(layout.getLayoutComponent(BorderLayout.EAST));
-    }
+  public static void setLeftPanel(JPanel panel) {
+    leftPanel = panel;
+  }
 
-    RightPanel rightPanel = new RightPanel(this, inputDocument);
-    this.getContentPane().add(rightPanel, BorderLayout.EAST);
+  public void removeLeftPanel() {
+    mainPanel.remove(leftPanel);
+  }
+
+  public JPanel getRightPanel() {
+    return rightPanel;
+  }
+
+  public static void setRightPanel(JPanel panel) {
+    rightPanel = panel;
+  }
+
+  public void removeRightPanel() {
+    mainPanel.remove(rightPanel);
+  }
+
+  public static JPanel getMainPanel() {
+    return mainPanel;
   }
 
   private JMenuBar initMenuBar() {

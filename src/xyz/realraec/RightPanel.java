@@ -11,73 +11,104 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Locale;
 import javax.imageio.ImageIO;
 import javax.net.ssl.HttpsURLConnection;
-import javax.swing.Action;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
 public class RightPanel extends JPanel {
 
-  protected static JPanel initRightPanel(MainFrame frame, Document inputDocument) {
+  public RightPanel(MainFrame frame, Document inputDocument) {
+    initRightPanel(frame, inputDocument);
+  }
 
-    // Reset to make the previous page disappear if there is one
-    if (frame.getRightPanel() != null) {
-      frame.removeRightPanel();
-    }
+  protected void initRightPanel(MainFrame frame, Document inputDocument) {
 
-    // CARD (IMAGE)
-    /*
-    Elements images = inputDocument.select("img[src~=(_Card)\\.(png)]");
-    */
+    // NECESSITIES
+    this.setLayout(new BorderLayout());
     Elements images = inputDocument.select("img[src~=\\.(png)]");
     String skinName = inputDocument.title()
         .substring(0, inputDocument.title().indexOf("voicelines") - 1).trim();
     String skinAddress = inputDocument.location();
-
     String urlCard = images.attr("src");
     urlCard = urlCard.substring(0, urlCard.lastIndexOf("/revision/"));
-    /*String urlIcon = inputDocument.select("link[href~=\\.(ico)]").attr("href");
-    System.out.println(urlIcon);
-    urlIcon = urlIcon.substring(0, urlIcon.lastIndexOf("/revision/"));*/
 
-    JPanel rightPanel = new JPanel(new BorderLayout());
-    rightPanel.setPreferredSize(new Dimension(264, 0));
-    rightPanel.setBackground(Color.BLACK);
+    // CARD (IMAGE)
+    initCard(urlCard);
+
+    // SEARCH PANEL
+    initSearch(frame, skinAddress, skinName);
+  }
+
+  private void initCard(String urlCard) {
+    this.setPreferredSize(new Dimension(264, 0));
+    this.setBackground(Color.BLACK);
     try {
       URL url = new URL(urlCard);
       BufferedImage bufferedCard = ImageIO.read(url);
       Image bufferedCard2 = bufferedCard.getScaledInstance(250, 330, Image.SCALE_SMOOTH);
       ImageIcon cardImage = new ImageIcon(bufferedCard2);
       JLabel cardLabel = new JLabel(cardImage);
-      rightPanel.add(cardLabel, BorderLayout.CENTER);
+      this.add(cardLabel, BorderLayout.CENTER);
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
 
-    /* -----------------------------------------------------
-    ----------------------------------------------------- */
-
-    // SEARCH PANEL
+  private void initSearch(MainFrame frame, String skinAddress, String skinName) {
     JPanel searchPanel = new JPanel(new BorderLayout());
 
     // OPEN IN NEW BUTTON
+    initOpenInNewButton(searchPanel, skinAddress);
+
+    // SEARCH FIELD
+    JTextField searchField = initField(frame, searchPanel, skinAddress, skinName);
+
+    // SEARCH BUTTON
+    initLoadButton(frame, searchPanel, searchField, skinAddress, skinName);
+
+    this.add(searchPanel, BorderLayout.SOUTH);
+  }
+
+  private JTextField initField(MainFrame frame, JPanel searchPanel, String skinAddress, String skinName) {
+    JTextField searchField = new JTextField();
+    searchField.setHorizontalAlignment(0);
+    searchField.setText(skinName);
+    searchField.addKeyListener(new KeyListener() {
+      @Override
+      public void keyTyped(KeyEvent e) {
+      }
+
+      @Override
+      public void keyPressed(KeyEvent e) {
+        // If you hit enter, effectively click on the search button
+        if (e.getKeyCode() == 10) {
+          String userInput = checkUserInput(searchField, skinName);
+          if (!userInput.equals(skinAddress)) {
+            performSearch(frame, userInput);
+          }
+        }
+      }
+
+      @Override
+      public void keyReleased(KeyEvent e) {
+      }
+    });
+    searchPanel.add(searchField, BorderLayout.CENTER);
+
+    return searchField;
+  }
+
+  private void initOpenInNewButton(JPanel searchPanel, String skinAddress) {
     JButton openInNewButton = new JButton("⚶");
     openInNewButton.setFocusPainted(false);
     openInNewButton.setContentAreaFilled(false);
@@ -97,112 +128,93 @@ public class RightPanel extends JPanel {
       }
     });
     searchPanel.add(openInNewButton, BorderLayout.WEST);
+  }
 
-    // SEARCH FIELD
-    JTextField searchField = new JTextField();
-    searchField.setHorizontalAlignment(0);
-    searchField.setText(skinName);
-    searchPanel.add(searchField, BorderLayout.CENTER);
-
-    // SEARCH BUTTON
+  private void initLoadButton(MainFrame frame, JPanel searchPanel, JTextField searchField,
+      String skinAddress, String skinName) {
     JButton searchButton = new JButton("Load");
     searchButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        String userInput = searchField.getText().trim();
-
-        // If given an address: extract name
-        if (userInput.startsWith("https://smite.gamepedia.com/")
-            && userInput.endsWith("_voicelines")) {
-          userInput = userInput.substring(28);
-          userInput = userInput.substring(0, userInput.length() - 11);
-          userInput = userInput.replaceAll("_", " ");
-        }
-
-        // First letter capitalized
-        char[] userInputArray = userInput.toLowerCase().toCharArray();
-        userInputArray[0] = (char) (userInputArray[0] - 32);
-        userInput = String.valueOf(userInputArray);
-
-        // Special cases 1/2
-        if (userInput.contains(".bat")) {
-          userInput = userInput.replace(".bat", ".BAT");
-        }
-        if (userInput.contains(".dmg")) {
-          userInput = userInput.replace(".dmg", ".DMG");
-        }
-        if (userInput.contains(".exe")) {
-          userInput = userInput.replace(".exe", ".EXE");
-        }
-        if (userInput.contains(".god")) {
-          userInput = userInput.replace(".god", ".GOD");
-        }
-        if (userInput.contains(".rar")) {
-          userInput = userInput.replace(".rar", ".RAR");
-        }
-
-        // Any letter after a blank space capitalized
-        while (userInput.contains(" ")) {
-          int indexToBeChanged = userInput.indexOf(" ");
-          String toBeChanged = userInput.substring(indexToBeChanged, indexToBeChanged + 2);
-          userInput = userInput.replace(toBeChanged, toBeChanged.toUpperCase().replace(" ", "_"));
-        }
-
-        // Special cases 2/2
-        if (userInput.contains("_Of_")) {
-          userInput = userInput.replace("_Of_", "_of_");
-        }
-        if (userInput.contains("_The_")) {
-          userInput = userInput.replace("_The_", "_the_");
-        }
-        if (userInput.contains("G.o.a.t")) {
-          userInput = userInput.replace("G.o.a.t", "G.O.A.T");
-        }
-        if (userInput.contains("M.o.u.s.e")) {
-          userInput = userInput.replace("M.o.u.s.e", "M.O.U.S.E");
-        }
-        if (userInput.contains("G.e.b")) {
-          userInput = userInput.replace("G.e.b", "G.E.B");
-        }
-        if (userInput.contains("G.i.z")) {
-          userInput = userInput.replace("G.i.z", "G.I.Z");
-        }
-        //System.out.println("\t\t\t\t\t finalUserInput: " + userInput);
-
-        // If not address, logically given a name
-        if (!userInput.equals("") && !userInput.equals(skinName)) {
-          userInput = "https://smite.gamepedia.com/" + userInput + "_voicelines";
-        }
+        String userInput = checkUserInput(searchField, skinName);
         if (!userInput.equals(skinAddress)) {
           performSearch(frame, userInput);
         }
       }
     });
     searchPanel.add(searchButton, BorderLayout.EAST);
-    searchField.addKeyListener(new KeyListener() {
-      @Override
-      public void keyTyped(KeyEvent e) {
-      }
-
-      @Override
-      public void keyPressed(KeyEvent e) {
-        // If you hit enter, effectively click on the search button
-        if (e.getKeyCode() == 10) {
-          searchButton.doClick();
-        }
-      }
-
-      @Override
-      public void keyReleased(KeyEvent e) {
-      }
-    });
-    rightPanel.add(searchPanel, BorderLayout.SOUTH);
-    MainFrame.getMainPanel().add(rightPanel, BorderLayout.EAST);
-
-    return rightPanel;
   }
 
-  private static void performSearch(MainFrame frame, String userInput) {
+  private String checkUserInput(JTextField searchField, String skinName) {
+    String userInput = searchField.getText().trim();
+
+    // If given an address: extract name
+    if (userInput.startsWith("https://smite.gamepedia.com/")
+        && userInput.endsWith("_voicelines")) {
+      userInput = userInput.substring(28);
+      userInput = userInput.substring(0, userInput.length() - 11);
+      userInput = userInput.replaceAll("_", " ");
+    }
+
+    // First letter capitalized
+    char[] userInputArray = userInput.toLowerCase().toCharArray();
+    userInputArray[0] = (char) (userInputArray[0] - 32);
+    userInput = String.valueOf(userInputArray);
+
+    // Special cases 1/2
+    if (userInput.contains(".bat")) {
+      userInput = userInput.replace(".bat", ".BAT");
+    }
+    if (userInput.contains(".dmg")) {
+      userInput = userInput.replace(".dmg", ".DMG");
+    }
+    if (userInput.contains(".exe")) {
+      userInput = userInput.replace(".exe", ".EXE");
+    }
+    if (userInput.contains(".god")) {
+      userInput = userInput.replace(".god", ".GOD");
+    }
+    if (userInput.contains(".rar")) {
+      userInput = userInput.replace(".rar", ".RAR");
+    }
+
+    // Any letter after a blank space capitalized
+    while (userInput.contains(" ")) {
+      int indexToBeChanged = userInput.indexOf(" ");
+      String toBeChanged = userInput.substring(indexToBeChanged, indexToBeChanged + 2);
+      userInput = userInput.replace(toBeChanged, toBeChanged.toUpperCase().replace(" ", "_"));
+    }
+
+    // Special cases 2/2
+    if (userInput.contains("_Of_")) {
+      userInput = userInput.replace("_Of_", "_of_");
+    }
+    if (userInput.contains("_The_")) {
+      userInput = userInput.replace("_The_", "_the_");
+    }
+    if (userInput.contains("G.o.a.t")) {
+      userInput = userInput.replace("G.o.a.t", "G.O.A.T");
+    }
+    if (userInput.contains("M.o.u.s.e")) {
+      userInput = userInput.replace("M.o.u.s.e", "M.O.U.S.E");
+    }
+    if (userInput.contains("G.e.b")) {
+      userInput = userInput.replace("G.e.b", "G.E.B");
+    }
+    if (userInput.contains("G.i.z")) {
+      userInput = userInput.replace("G.i.z", "G.I.Z");
+    }
+    //System.out.println("\t\t\t\t\t finalUserInput: " + userInput);
+
+    // If not address, logically given a name
+    if (!userInput.equals("") && !userInput.equals(skinName)) {
+      userInput = "https://smite.gamepedia.com/" + userInput + "_voicelines";
+    }
+
+    return userInput;
+  }
+
+  public void performSearch(MainFrame frame, String userInput) {
     int code;
     try {
       URL possibleUrl = new URL(userInput);
@@ -218,12 +230,13 @@ public class RightPanel extends JPanel {
 
     if (code == 200) {
       try {
-        Document newDocument = MainFrame.initDocument(userInput);
+        Document newDocument = frame.initDocument(userInput);
         System.out.println("Fetching " + userInput);
         frame.initTitle(newDocument);
-        MainFrame.setRightPanel(RightPanel.initRightPanel(frame, newDocument));
-        MainFrame.setLeftPanel(LeftPanel.initLeftPanel(frame, newDocument));
-        MainFrame.getMainPanel().revalidate();
+        frame.initLeftPanel(newDocument);
+        frame.initRightPanel(newDocument);
+        frame.getContentPane().revalidate();
+
       } catch (IOException ioException) {
         ioException.printStackTrace();
       }

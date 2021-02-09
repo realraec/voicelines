@@ -1,7 +1,7 @@
 package xyz.realraec;
 
-import static javax.sound.sampled.AudioSystem.getAudioInputStream;
 import static javax.sound.sampled.AudioFormat.Encoding.PCM_SIGNED;
+import static javax.sound.sampled.AudioSystem.getAudioInputStream;
 
 import java.io.IOException;
 import java.net.URL;
@@ -13,19 +13,33 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-public class AudioFilePlayer {
+public class AudioFilePlayerV1 {
 
-  public AudioFilePlayer(String filePath) {
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        play(filePath);
+  private volatile static AudioFilePlayerV1 player = new AudioFilePlayerV1();
+
+  public static AudioFilePlayerV1 getInstance() {
+    if (player == null) {
+      synchronized (AudioFilePlayerV1.class) {
+        player = new AudioFilePlayerV1();
       }
-    }).start();
+    }
+    return player;
   }
 
 
-  private void play(String filePath) {
+/*  public static void main(String[] args) {
+
+    String soundURL = "https://static.wikia.nocookie.net/smite_gamepedia/images/2/23/Ramerica_Taunt_Directed_Aphrodite.ogg";
+    String soundPath = "C:/Users/Pierre/Desktop/Ramerica_Taunt_Directed_Aphrodite.oga";
+
+    final AudioFilePlayer player = new AudioFilePlayer();
+    player.play(soundURL);
+  }*/
+
+  public void play(String filePath) {
+
+/*    final File file = new File(filePath);
+    try (final AudioInputStream in = getAudioInputStream(file)) {*/
 
     try (final AudioInputStream in = getAudioInputStream(new URL(filePath))) {
 
@@ -46,7 +60,8 @@ public class AudioFilePlayer {
         e.printStackTrace();
       }
 
-    } catch (UnsupportedAudioFileException | IOException e) {
+    } catch (UnsupportedAudioFileException
+        | IOException e) {
       throw new IllegalStateException(e);
     }
   }
