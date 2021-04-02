@@ -13,19 +13,17 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-public class AudioFilePlayer {
+public class AudioFilePlayer implements Runnable {
+
+  private final String filePath;
 
   public AudioFilePlayer(String filePath) {
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        play(filePath);
-      }
-    }).start();
+    this.filePath = filePath;
   }
 
 
-  private void play(String filePath) {
+  @Override
+  public void run() {
 
     try (final AudioInputStream in = getAudioInputStream(new URL(filePath))) {
 
@@ -64,4 +62,5 @@ public class AudioFilePlayer {
       line.write(buffer, 0, n);
     }
   }
+
 }
