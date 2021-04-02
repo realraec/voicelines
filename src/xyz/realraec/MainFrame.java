@@ -19,10 +19,10 @@ public class MainFrame extends JFrame {
 
   public MainFrame(String url) throws IOException {
 
-    this.setSize(1100, 435);
-    this.setMinimumSize(new Dimension(850, 435));
+    this.setSize(1300, 665);
+    this.setMinimumSize(new Dimension(860, 435));
     this.setLocationRelativeTo(null);
-    this.setLocation(100, 100);
+    //this.setLocation(100, 100);
     this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
     // Document

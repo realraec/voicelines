@@ -1,62 +1,77 @@
 package xyz.realraec;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
-import javax.swing.plaf.basic.BasicButtonUI;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class LeftPanel extends JPanel {
 
-  JPanel buttonsPanel;
-  Elements audios;
-  Element audioKindLiTd;
-  Element sectionElement;
-  Element audioLine;
-  List<String> audioNamesList = null;
-  String audioSource;
-  String audioName = "";
-  String audioLineString;
-  String sectionName = "";
-  String sectionNameComparison = "";
-  String previousSectionName = "";
-  String previousSectionNameComparison = "";
-  String VGSCode = "";
-  JLabel sectionLabel;
-  JTextField textField;
-  int numberColumns = 0;
-  int elementsCounter = 0;
-  int extraCounterTemp = 0;
-  int numberStances = 0;
-  int loopCounter = 0;
-  int fixedBrCount = 0;
-  boolean firstTdCheck = true;
-  boolean firstSectionCheck = true;
-  boolean firstElementCheck = true;
-  boolean brokenAudio = false;
+  private JPanel buttonsPanel;
+  private JPanel filterPanel;
+  private JPanel tableContentsPanel;
+  private JScrollPane scrollButtonPane;
+  private Elements audios;
+  private Element audioKindLiTd;
+  private Element sectionElement;
+  private List<String> audioNamesList = null;
+  private String audioSource;
+  private String audioName = "";
+  private String audioLineString;
+  private String sectionName = "";
+  private String sectionNameComparison = "";
+  private String previousSectionName = "";
+  private String previousSectionNameComparison = "";
+  private String VGSCode = "";
+  private String filter = "";
+  private JLabel sectionLabel;
+  private JTextField textField;
+  private JTextField filterField;
+  private JButton filterButton;
+  private int componentHeight;
+  private int numberColumns = 0;
+  private int elementsCounter = 0;
+  private int extraCounterTemp = 0;
+  private int numberStances = 0;
+  private int loopCounter = 0;
+  private int fixedBrCount = 0;
+  private boolean firstTdCheck = true;
+  private boolean firstSectionCheck = true;
+  private boolean firstElementCheck = true;
+  private boolean brokenAudio = false;
   // Technically all labels, only the font used differs
-  Font sectionFont = new Font("Arial", Font.BOLD, 14);
-  Font subSectionFont = new Font("Arial", Font.PLAIN, 12);
-  Font subSubSectionFont = new Font("Arial", Font.ITALIC, 11);
+  private final Font sectionFont = new Font("Arial", Font.BOLD, 14);
+  private final Font subSectionFont = new Font("Arial", Font.PLAIN, 12);
+  private final Font subSubSectionFont = new Font("Arial", Font.ITALIC, 11);
+  private final ArrayList<JComponent> componentsList = new ArrayList<>();
+  private final ArrayList<JComponent> componentsListFilter = new ArrayList<>();
+  private final ArrayList<JButton> tableContentsList = new ArrayList<>();
+  // Might be of use later
+  private final ArrayList<JButton> buttonsList = new ArrayList<>();
+  private final ArrayList<VoicelineBundle> bundlesList = new ArrayList<>();
 
 
   public LeftPanel(MainFrame frame, Document inputDocument) {
@@ -64,16 +79,55 @@ public class LeftPanel extends JPanel {
   }
 
   private void initLeftPanel(MainFrame frame, Document inputDocument) {
-    this.setLayout(new BorderLayout());
-    audioSource = null;
-    String pageAddress = inputDocument.location();
-
     // COMPONENTS AND BASE
+    this.setLayout(new BorderLayout());
+    String pageAddress = inputDocument.location();
+    audioSource = null;
     textField = new JTextField();
     textField.setEditable(false);
     textField.setHorizontalAlignment(0);
+    //textField.setMinimumSize(new Dimension(500,0));
+    textField.setPreferredSize(new Dimension(850, 25));
+
+    // LOOKUP
+    filterField = new JTextField();
+    filterField.addKeyListener(new KeyListener() {
+      @Override
+      public void keyTyped(KeyEvent e) {
+      }
+
+      @Override
+      public void keyPressed(KeyEvent e) {
+        // If you hit enter, effectively click on the search button
+        if (e.getKeyCode() == 10) {
+          filterButton.doClick();
+        }
+      }
+
+      @Override
+      public void keyReleased(KeyEvent e) {
+      }
+    });
+    filterButton = new JButton("Filter");
+    filterButton.setFocusPainted(false);
+    filterButton.setContentAreaFilled(false);
+    filterButton.setBorderPainted(false);
+    filterPanel = new JPanel(new BorderLayout());
+    filterPanel.add(filterButton, BorderLayout.WEST);
+    filterPanel.add(filterField, BorderLayout.CENTER);
+
+    filterButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        filter = filterField.getText().toLowerCase();
+        applyFilter(
+            //frame, inputDocument
+        );
+      }
+    });
 
     // EITHER LIST OR EXPLORER
+    componentsList.clear();
     if (pageAddress.equals("https://smite.gamepedia.com/God_voicelines")
         || pageAddress.equals("https://smite.gamepedia.com/Skin_voicelines")
         || pageAddress.equals("https://smite.gamepedia.com/Announcer_packs")) {
@@ -85,11 +139,95 @@ public class LeftPanel extends JPanel {
 
     // COMPONENTS
     buttonsPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
-    JScrollPane scrollButtonPane = new JScrollPane(buttonsPanel);
+    updateDisplayLeft(componentsList);
+  }
+
+  private void updateDisplayLeft(ArrayList<JComponent> componentsList) {
+    this.removeAll();
+
+    // Scroll pane
+    scrollButtonPane = new JScrollPane(buttonsPanel);
     scrollButtonPane.getVerticalScrollBar().setUnitIncrement(20);
-    //JPanel leftPanel = new JPanel(new BorderLayout());
-    this.add(scrollButtonPane, BorderLayout.CENTER);
-    this.add(textField, BorderLayout.NORTH);
+    // Need for a value other than 0 before, or won't reset
+    scrollButtonPane.getVerticalScrollBar().setValue(10);
+    scrollButtonPane.getVerticalScrollBar().setValue(0);
+
+    // Table of contents
+    initTableContents(componentsList);
+
+    // Main panel
+    JPanel westPanel = new JPanel(new BorderLayout());
+    JPanel eastPanel = new JPanel(new BorderLayout());
+    westPanel.add(filterPanel, BorderLayout.NORTH);
+    westPanel.add(tableContentsPanel, BorderLayout.CENTER);
+    eastPanel.add(textField, BorderLayout.NORTH);
+    eastPanel.add(scrollButtonPane, BorderLayout.CENTER);
+    this.add(westPanel, BorderLayout.WEST);
+    this.add(eastPanel, BorderLayout.CENTER);
+
+    this.repaint();
+    this.revalidate();
+  }
+
+  private void initTableContents(ArrayList<JComponent> componentsList) {
+    // Necessities
+    tableContentsPanel = new JPanel(new GridLayout(0, 1));
+    tableContentsPanel.removeAll();
+    tableContentsList.clear();
+    Dimension buttonDimension = new Dimension(197, 0);
+
+    int counter = 0;
+    for (int h = 0; h < componentsList.size(); h++) {
+      if (componentsList.get(h) instanceof JLabel
+          && !((JLabel) componentsList.get(h)).getText().equals(" ")) {
+        JButton temp = new JButton();
+
+        temp.setText(((JLabel) componentsList.get(h)).getText());
+        temp.setFont(((JLabel) componentsList.get(h)).getFont());
+        temp.setPreferredSize(buttonDimension);
+
+        //temp.setFocusPainted(false);
+        temp.setBorderPainted(false);
+        temp.setContentAreaFilled(false);
+        temp.setHorizontalAlignment(JButton.LEFT);
+        temp.addActionListener(
+            new TableContentActionListener(componentsList, scrollButtonPane, subSubSectionFont,
+                numberColumns, componentHeight, h));
+        tableContentsPanel.add(temp);
+        counter++;
+        tableContentsList.add(temp);
+      }
+    }
+
+    // AESTHETICS
+    // To make the panel keep the same size
+    if (counter == 0) {
+      JButton empty = new JButton(" ");
+      empty.setPreferredSize(buttonDimension);
+      empty.setEnabled(false);
+      empty.setBorder(null);
+      tableContentsPanel.add(empty);
+      counter = 30;
+    }
+
+    // Removing the subsubsections if there are too many to see properly
+    if (counter > 50) {
+      tableContentsPanel.removeAll();
+      counter = 0;
+      for (int i = 0; i < tableContentsList.size(); i++) {
+        if (!tableContentsList.get(i).getFont().equals(subSubSectionFont)) {
+          tableContentsPanel.add(tableContentsList.get(i));
+          counter++;
+        }
+      }
+    }
+
+    // To have enough buttons to not have only a handful of huge ones
+    while (counter < 30) {
+      JLabel extraTemp = new JLabel(" ");
+      tableContentsPanel.add(extraTemp);
+      counter++;
+    }
   }
 
   private void initList(MainFrame frame, Document inputDocument, String pageAddress) {
@@ -134,13 +272,12 @@ public class LeftPanel extends JPanel {
     } else {
       substring = 11;
     }
-    int xxx = 0;
-    //pageAddress.contains("Skin") ? 700 : 0;
+
     new Thread(new Runnable() {
       @Override
       public void run() {
         // Skipping the first and last two on purpose since they are not icons of interest
-        for (int i = 1; i < images.size() - 2 - xxx; i++) {
+        for (int i = 1; i < images.size() - 2; i++) {
           // SOURCE
           String imgSource = images.get(i).attr("src");
           Icon imgIcon = null;
@@ -153,19 +290,24 @@ public class LeftPanel extends JPanel {
           // TEXT
           String imgTextString = images.get(i).parent().parent().text().trim();
           imgTextString = imgTextString.substring(0, imgTextString.length() - substring);
-          JLabel imgIconLabel = new JLabel(imgIcon);
-          JLabel imgTextLabel = new JLabel(imgTextString);
-          imgTextLabel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
+          //JLabel imgIconLabel = new JLabel(imgIcon);
+          //JLabel imgTextLabel = new JLabel(imgTextString);
+          //imgTextLabel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
           JButton imgButton = new JButton();
-          imgButton.setLayout(new BorderLayout());
-          imgButton.add(imgIconLabel, BorderLayout.WEST);
-          imgButton.add(imgTextLabel, BorderLayout.CENTER);
+          imgButton.setText(imgTextString);
+          imgButton.setIcon(imgIcon);
+          imgButton.setHorizontalAlignment(SwingConstants.LEFT);
+          //imgButton.setLayout(new BorderLayout());
+          //imgButton.add(imgIconLabel, BorderLayout.WEST);
+          //imgButton.add(imgTextLabel, BorderLayout.CENTER);
           imgButton.setPreferredSize(new Dimension(0, 42));
+          componentHeight = 42;
           //imgButton.setUI(new BasicButtonUI());
 
           // SECTION
           if (pageAddress.equals("https://smite.gamepedia.com/Skin_voicelines")) {
-            sectionName = images.get(i).parent().parent().parent().previousElementSibling().text();
+            sectionName = images.get(i).parent().parent().parent().previousElementSibling()
+                .text();
             sectionName = sectionName.substring(0, sectionName.indexOf("["));
           } else if (!imgTextString.equals("Default")) {
             sectionName = imgTextString.substring(0, 1);
@@ -175,14 +317,15 @@ public class LeftPanel extends JPanel {
 
           // If it is not the same label as the one added just before
           if (!sectionName.equals(sectionNameComparison)) {
-        /*if (!sectionNameComparison.equals("")) {
-          newLine(buttonsPanel, elementsCounter);
-        }*/
+            /*if (!sectionNameComparison.equals("")) {
+            newLine(buttonsPanel, elementsCounter);
+            }*/
 
             endLine(buttonsPanel);
             sectionLabel = new JLabel(sectionName);
             buttonsPanel.add(sectionLabel);
             elementsCounter++;
+            componentsList.add(sectionLabel);
             endLine(buttonsPanel);
           }
 
@@ -198,12 +341,18 @@ public class LeftPanel extends JPanel {
               frame.performSearch(finalImgLink);
             }
           });
+          //XXXXXXXX: Border issue
+          //imgButton.setBorder(new EmptyBorder(0,0,0,5));
           buttonsPanel.add(imgButton);
           elementsCounter++;
+          componentsList.add(imgButton);
           sectionNameComparison = sectionName;
           // For the new button to appear as soon as it is made
           frame.revalidate();
         }
+
+        filter = "";
+        applyFilter();
       }
     }).start();
   }
@@ -213,8 +362,12 @@ public class LeftPanel extends JPanel {
     buttonsPanel = new JPanel(new GridLayout(0, 3));
     // Base: <audio> tags
     audios = inputDocument.select("audio,a[data-state=\"error\"]");
+    elementsCounter = 0;
+    VGSCode = "";
 
     for (int i = 0; i < audios.size(); i++) {
+
+      // Broken audio check
       try {
         audioSource = audios.get(i).child(0).attr("src");
         brokenAudio = false;
@@ -223,6 +376,7 @@ public class LeftPanel extends JPanel {
         brokenAudio = true;
       }
 
+      // Base depending on whether the audio is broken or not
       if (!brokenAudio) {
         audioKindLiTd = audios.get(i).parent().parent();
       } else {
@@ -253,15 +407,30 @@ public class LeftPanel extends JPanel {
         // Visual cue to help notice when something is wrong instead of just skipping it
         // Handling error in case a file or (sub)section does not have the right name
       } catch (NullPointerException e) {
-        buttonsPanel.add(new JLabel("ERROR 1: NULL POINTER ######"));
+        JLabel error = new JLabel("ERROR 1: NULL POINTER ######");
+        buttonsPanel.add(error);
         elementsCounter++;
+        componentsList.add(error);
         e.printStackTrace();
       } catch (StringIndexOutOfBoundsException e) {
-        buttonsPanel.add(new JLabel("ERROR 2: INDEX OUT ######"));
+        JLabel error = new JLabel("ERROR 2: INDEX OUT ######");
+        buttonsPanel.add(error);
         elementsCounter++;
+        componentsList.add(error);
         e.printStackTrace();
       }
     }
+
+    // Aesthetics: all buttons of the same size
+    // No longer needed because handled with filter
+    /*
+    while (elementsCounter < 71) {
+      JLabel extraTemp = new JLabel(" ");
+      buttonsPanel.add(extraTemp);
+      elementsCounter++;
+    }*/
+    filter = "";
+    applyFilter();
   }
 
   private void tdAnalysis(int i) {
@@ -314,7 +483,7 @@ public class LeftPanel extends JPanel {
 
     // DEFAULT / STARTING POINT
     // Text location
-    audioLine = audioKindLiTd.previousElementSibling();
+    Element audioLine = audioKindLiTd.previousElementSibling();
     // Button name
     audioName = audioLine.text().trim();
     // If ▶ character found in name, the location is not right (non-broken audio)
@@ -572,6 +741,186 @@ public class LeftPanel extends JPanel {
     loopCounter++;
   }
 
+  private void applyFilter(
+      //MainFrame frame, Document inputDocument
+  ) {
+    elementsCounter = 0;
+
+    buttonsPanel.removeAll();
+    componentsListFilter.clear();
+    JComponent firstSectionComparison = null;
+    JComponent secondSectionComparison = null;
+    JComponent thirdSectionComparison = null;
+    bundlesList.clear();
+
+    // NECESSITIES
+    JComponent firstSection = null;
+    JComponent secondSection = null;
+    JComponent thirdSection = null;
+
+    for (int i = 0; i < componentsList.size(); i++) {
+      // Always working our way up from a JButton and its text
+      if (componentsList.get(i) instanceof JButton) {
+        if (((JButton) componentsList.get(i)).getText().toLowerCase().contains(filter)) {
+
+          // NECESSITIES
+          firstSection = null;
+          secondSection = null;
+          thirdSection = null;
+
+          // First section encountered: base
+          int j = 1;
+          while (!(componentsList.get(i - j) instanceof JLabel)) {
+            // Going further back till we get to a label
+            j++;
+          }
+          while (((JLabel) componentsList.get(i - j)).getText().equals(" ")) {
+            // Going further back till we get to a label that's not empty, so a section
+            j++;
+          }
+          firstSection = componentsList.get(i - j);
+
+            /* -----------------------------------------------------
+            ----------------------------------------------------- */
+
+          // FETCHING PREVIOUS SECTION NAMES
+          // If first section encountered is a subsection, need to go further back
+          if (firstSection.getFont().equals(subSectionFont)) {
+            int k = 1;
+            boolean beforeSubSEncountered = false;
+            Font beforeSubSFont;
+
+            // Second section encountered: section
+            while (!beforeSubSEncountered) {
+              beforeSubSFont = (componentsList.get(i - j - k)).getFont();
+              if (beforeSubSFont.equals(sectionFont)) {
+                beforeSubSEncountered = true;
+              } else {
+                // Going further back till we get to the section
+                k++;
+              }
+            }
+            secondSection = componentsList.get(i - j - k);
+          }
+
+            /* -----------------------------------------------------
+            ----------------------------------------------------- */
+
+          // If first section encountered is a subsubsection, need to go further back
+          else if (firstSection.getFont().equals(subSubSectionFont)) {
+            int k = 1;
+            boolean beforeSubSubSEncountered = false;
+            Font beforeSubSubSFont;
+
+            // Second section encountered: section OR subsection
+            while (!beforeSubSubSEncountered) {
+              beforeSubSubSFont = (componentsList.get(i - j - k)).getFont();
+
+              // If section
+              if (beforeSubSubSFont.equals(sectionFont)) {
+                beforeSubSubSEncountered = true;
+                thirdSection = componentsList.get(i - j - k);
+
+                // If subsection
+              } else if (beforeSubSubSFont.equals(subSectionFont)) {
+                beforeSubSubSEncountered = true;
+                secondSection = componentsList.get(i - j - k);
+
+                int l = 1;
+                boolean beforeSubSEncountered = false;
+                Font beforeSubSFont;
+
+                // Third section encountered: section
+                while (!beforeSubSEncountered) {
+                  beforeSubSFont = (componentsList.get(i - j - k - l)).getFont();
+
+                  if (beforeSubSFont.equals(sectionFont)) {
+                    beforeSubSEncountered = true;
+                    thirdSection = componentsList.get(i - j - k - l);
+                  } else {
+                    // Going further back till we get to the section
+                    l++;
+                  }
+                }
+              } else {
+                // Going further back till we get to the subsection
+                k++;
+              }
+            }
+          }
+
+            /* -----------------------------------------------------
+            ----------------------------------------------------- */
+
+          // ADDING TO PANEL
+          // 3rd (the furthest back)
+          if (thirdSection != null && !thirdSection.equals(thirdSectionComparison)
+              && !thirdSection.equals(secondSectionComparison)
+              && !thirdSection.equals(firstSectionComparison)) {
+            if (thirdSection.getFont().equals(sectionFont) && elementsCounter != 0) {
+              newLine(buttonsPanel);
+            }
+            endLine(buttonsPanel);
+            buttonsPanel.add(thirdSection);
+            elementsCounter++;
+            componentsListFilter.add(thirdSection);
+            endLine(buttonsPanel);
+          }
+
+          // 2nd (further back)
+          if (secondSection != null && !secondSection.equals(secondSectionComparison)
+              && !secondSection.equals(firstSectionComparison)
+              && !secondSection.equals(thirdSectionComparison)) {
+            if (secondSection.getFont().equals(sectionFont) && elementsCounter != 0) {
+              newLine(buttonsPanel);
+            }
+            endLine(buttonsPanel);
+            buttonsPanel.add(secondSection);
+            elementsCounter++;
+            componentsListFilter.add(secondSection);
+            endLine(buttonsPanel);
+          }
+
+          // 1st (the closest)
+          if (!firstSection.equals(firstSectionComparison)) {
+            if (firstSection.getFont().equals(sectionFont) && elementsCounter != 0) {
+              newLine(buttonsPanel);
+            }
+            endLine(buttonsPanel);
+            buttonsPanel.add(firstSection);
+            elementsCounter++;
+            componentsListFilter.add(firstSection);
+            endLine(buttonsPanel);
+          }
+
+          /* -----------------------------------------------------
+          ----------------------------------------------------- */
+
+          buttonsPanel.add(componentsList.get(i));
+          elementsCounter++;
+          componentsListFilter.add(componentsList.get(i));
+
+          // To avoid duplicates
+          firstSectionComparison = firstSection;
+          secondSectionComparison = secondSection;
+          thirdSectionComparison = thirdSection;
+        }
+
+        VoicelineBundle voicelineBundle = new VoicelineBundle((JButton) componentsList.get(i),
+            firstSection, secondSection, thirdSection);
+        bundlesList.add(voicelineBundle);
+      }
+    }
+
+    // Aesthetics
+    while (elementsCounter < 72) {
+      buttonsPanel.add(new JLabel(" "));
+      elementsCounter++;
+    }
+
+    updateDisplayLeft(componentsListFilter);
+  }
+
   private void addToPanel() {
     // For voicelines that have an associated VGS code
     if (!VGSCode.equals("")) {
@@ -634,7 +983,9 @@ public class LeftPanel extends JPanel {
       endLine(buttonsPanel);
       buttonsPanel.add(sectionLabel);
       elementsCounter++;
+      componentsList.add(sectionLabel);
       endLine(buttonsPanel);
+      //}
     }
 
     // To be used in the following loops to check if the label is already there
@@ -649,6 +1000,7 @@ public class LeftPanel extends JPanel {
     JButton audioButton = new JButton(audioName);
     // Fixes top/bottom margin issue and sets panel height and width
     audioButton.setPreferredSize(new Dimension(0, 23));
+    componentHeight = 23;
     audioButton.setFocusPainted(false);
     if (audioSource != null) {
       final String finalAudioUrl = audioSource;
@@ -658,7 +1010,7 @@ public class LeftPanel extends JPanel {
         public void actionPerformed(ActionEvent e) {
           textField.setText(finalAudioName);
           // New Thread and instance so several voicelines can be played simultaneously
-          new AudioFilePlayer(finalAudioUrl);
+          new Thread(new AudioFilePlayer(finalAudioUrl)).start();
         }
       });
     } else {
@@ -666,6 +1018,8 @@ public class LeftPanel extends JPanel {
     }
     buttonsPanel.add(audioButton);
     elementsCounter++;
+    componentsList.add(audioButton);
+    buttonsList.add(audioButton);
 
     // Automatically plays the first voiceline (the god's name) when a page is loaded
     if (firstElementCheck) {
@@ -680,6 +1034,7 @@ public class LeftPanel extends JPanel {
     endLine(buttonsPanel);
     buttonsPanel.add(tempPrevious);
     elementsCounter++;
+    componentsList.add(tempPrevious);
   }
 
   private String properName(String sectionName) {
@@ -691,15 +1046,21 @@ public class LeftPanel extends JPanel {
 
   private void endLine(JPanel buttonsPanel) {
     while (elementsCounter % numberColumns != 0) {
+      JLabel empty = new JLabel(" ");
+      buttonsPanel.add(empty);
       elementsCounter++;
-      buttonsPanel.add(new JLabel(" "));
+      componentsList.add(empty);
+      componentsListFilter.add(empty);
     }
   }
 
   private void newLine(JPanel buttonsPanel) {
     for (int j = 1; j <= numberColumns; j++) {
+      JLabel empty = new JLabel(" ");
+      buttonsPanel.add(empty);
       elementsCounter++;
-      buttonsPanel.add(new JLabel(" "));
+      componentsList.add(empty);
+      componentsListFilter.add(empty);
     }
   }
 

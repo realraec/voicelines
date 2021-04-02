@@ -115,7 +115,7 @@ public class RightPanel extends JPanel {
     } else {
       searchField.setText(pageName);
     }
-    searchField.addKeyListener(new KeyListener() {
+    /*searchField.addKeyListener(new KeyListener() {
       @Override
       public void keyTyped(KeyEvent e) {
       }
@@ -134,7 +134,7 @@ public class RightPanel extends JPanel {
       @Override
       public void keyReleased(KeyEvent e) {
       }
-    });
+    });*/
     searchPanel.add(searchField, BorderLayout.CENTER);
 
     return searchField;
@@ -165,6 +165,9 @@ public class RightPanel extends JPanel {
   private void initLoadButton(MainFrame frame, JPanel searchPanel, JTextField searchField,
       String pageAddress, String pageName) {
     JButton searchButton = new JButton("Load");
+    searchButton.setFocusPainted(false);
+    searchButton.setContentAreaFilled(false);
+    searchButton.setBorderPainted(false);
     searchButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -183,9 +186,9 @@ public class RightPanel extends JPanel {
 
     // If given an address: extract name
     if (userInput.startsWith("https://smite.gamepedia.com/")
-        && userInput.endsWith("_voicelines")
+        && (userInput.endsWith("_voicelines")
         || userInput.endsWith("_Announcer_pack")
-        || userInput.endsWith("Announcer_packs")) {
+        || userInput.endsWith("Announcer_packs"))) {
       if (userInput.endsWith("_voicelines")) {
         userInput = userInput.substring(0, userInput.length() - 11);
       } else if (userInput.endsWith("_Announcer_pack")) {
@@ -318,6 +321,9 @@ public class RightPanel extends JPanel {
     if (userInput.contains("etyr")) {
       userInput = userInput.replace("etyr", "eTyr");
     }
+    if (userInput.contains("Nevercake")) {
+      userInput = userInput.replace("Nevercake", "NeverCake");
+    }
 
     if (userInput.contains("-a-b")) {
       userInput = userInput.replace("-a-b", "-A-B");
@@ -384,6 +390,5 @@ public class RightPanel extends JPanel {
 
     return userInputFinal;
   }
-
 
 }
