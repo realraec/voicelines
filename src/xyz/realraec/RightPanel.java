@@ -42,13 +42,13 @@ public class RightPanel extends JPanel {
     // CARD (IMAGE)
     switch (pageAddress) {
       // Exceptions for evolving skins (and therefore cards)
-      case "https://smite.gamepedia.com/Demonic_Pact_Anubis_voicelines":
+      case "https://smite.fandom.com/wiki/Demonic_Pact_Anubis_voicelines":
         urlCard = "https://static.wikia.nocookie.net/smite_gamepedia/images/b/b1/T_Anubis_DemonicPact_Stage3.png";
         break;
-      case "https://smite.gamepedia.com/Stellar_Demise_Baron_Samedi_voicelines":
+      case "https://smite.fandom.com/wiki/Stellar_Demise_Baron_Samedi_voicelines":
         urlCard = "https://static.wikia.nocookie.net/smite_gamepedia/images/6/6e/T_BaronSamedi_T5_Form3_Card.png";
         break;
-      case "https://smite.gamepedia.com/Ragnarok_Force_X_Thor_voicelines":
+      case "https://smite.fandom.com/wiki/Ragnarok_Force_X_Thor_voicelines":
         urlCard = "https://static.wikia.nocookie.net/smite_gamepedia/images/5/50/T_Thor_T5_Mech_Card.png";
         break;
       default:
@@ -75,10 +75,12 @@ public class RightPanel extends JPanel {
       URL url = new URL(urlCard);
       BufferedImage bufferedCard = ImageIO.read(url);
       ImageIcon cardImage;
-      if (pageAddress.equals("https://smite.gamepedia.com/God_voicelines")
-          || pageAddress.equals("https://smite.gamepedia.com/Skin_voicelines")
-          || pageAddress.equals("https://smite.gamepedia.com/Announcer_packs")
-          || pageAddress.contains("Announcer_pack")) {
+      if (pageAddress.equals("https://smite.fandom.com/wiki/God_voicelines")
+          || pageAddress.equals("https://smite.fandom.com/wiki/Skin_voicelines")
+          || pageAddress.equals("https://smite.fandom.com/wiki/Announcer_packs")
+          || pageAddress.contains("Announcer_pack")
+      ) {
+
         cardImage = new ImageIcon(bufferedCard);
       } else {
         Image bufferedCard2 = bufferedCard.getScaledInstance(250, 330, Image.SCALE_SMOOTH);
@@ -115,6 +117,7 @@ public class RightPanel extends JPanel {
     } else {
       searchField.setText(pageName);
     }
+    // Changed since the enter key is now used for the filter
     /*searchField.addKeyListener(new KeyListener() {
       @Override
       public void keyTyped(KeyEvent e) {
@@ -185,18 +188,19 @@ public class RightPanel extends JPanel {
     boolean isAnnouncerPack = false;
 
     // If given an address: extract name
-    if (userInput.startsWith("https://smite.gamepedia.com/")
+    if (userInput.startsWith("https://smite.fandom.com/wiki/")
+
         && (userInput.endsWith("_voicelines")
         || userInput.endsWith("_Announcer_pack")
         || userInput.endsWith("Announcer_packs"))) {
       if (userInput.endsWith("_voicelines")) {
         userInput = userInput.substring(0, userInput.length() - 11);
       } else if (userInput.endsWith("_Announcer_pack")) {
-        userInput = userInput.substring(0, userInput.length() - 15);
+        userInput = userInput.substring(0, userInput.length() - 17);
         isAnnouncerPack = true;
       }
 
-      userInput = userInput.substring(28);
+      userInput = userInput.substring(30);
       userInput = userInput.replaceAll("_", " ");
     }
 
@@ -375,16 +379,15 @@ public class RightPanel extends JPanel {
       e.printStackTrace();
     }
 
-
     // If not address, logically given a name
     if (!userInputFinal.equals("")) {
       if (userInputFinal.equals("Announcer_Packs")) {
-        userInputFinal = "https://smite.gamepedia.com/Announcer_packs";
+        userInputFinal = "https://smite.fandom.com/wiki/Announcer_packs";
       } else if (!isAnnouncerPack && !userInputFinal.concat("_voicelines").equals(pageNameFinal)) {
-        userInputFinal = "https://smite.gamepedia.com/" + userInputFinal + "_voicelines";
+        userInputFinal = "https://smite.fandom.com/wiki/" + userInputFinal + "_voicelines";
       } else if (isAnnouncerPack && !userInputFinal.concat(" Announcer pack")
           .equals(pageNameFinal)) {
-        userInputFinal = "https://smite.gamepedia.com/" + userInputFinal + "_Announcer_pack";
+        userInputFinal = "https://smite.fandom.com/wiki/" + userInputFinal + "_Announcer_pack";
       }
     }
 

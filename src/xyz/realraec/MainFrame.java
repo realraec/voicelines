@@ -80,21 +80,21 @@ public class MainFrame extends JFrame {
     godsListItem.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        performSearch("https://smite.gamepedia.com/God_voicelines");
+        performSearch("https://smite.fandom.com/wiki/God_voicelines");
       }
     });
     JMenuItem skinsListItem = new JMenuItem("Skin voicelines");
     skinsListItem.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        performSearch("https://smite.gamepedia.com/Skin_voicelines");
+        performSearch("https://smite.fandom.com/wiki/Skin_voicelines");
       }
     });
     JMenuItem announcerPacksItem = new JMenuItem("Announcer packs");
     announcerPacksItem.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        performSearch("https://smite.gamepedia.com/Announcer_packs");
+        performSearch("https://smite.fandom.com/wiki/Announcer_packs");
       }
     });
     JMenu listsMenu = new JMenu("Lists");

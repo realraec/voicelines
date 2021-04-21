@@ -13,7 +13,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -128,9 +127,10 @@ public class LeftPanel extends JPanel {
 
     // EITHER LIST OR EXPLORER
     componentsList.clear();
-    if (pageAddress.equals("https://smite.gamepedia.com/God_voicelines")
-        || pageAddress.equals("https://smite.gamepedia.com/Skin_voicelines")
-        || pageAddress.equals("https://smite.gamepedia.com/Announcer_packs")) {
+    if (pageAddress.equals("https://smite.fandom.com/wiki/God_voicelines")
+        || pageAddress.equals("https://smite.fandom.com/wiki/Skin_voicelines")
+        || pageAddress.equals("https://smite.fandom.com/wiki/Announcer_packs")
+    ) {
       initList(frame, inputDocument, pageAddress);
     } else {
       numberColumns = 3;
@@ -232,11 +232,11 @@ public class LeftPanel extends JPanel {
 
   private void initList(MainFrame frame, Document inputDocument, String pageAddress) {
     switch (pageAddress) {
-      case "https://smite.gamepedia.com/God_voicelines":
+      case "https://smite.fandom.com/wiki/God_voicelines":
         textField.setText(
             "Here are all the default voicepacks. Click on a button to load the god's default voicepack.");
         break;
-      case "https://smite.gamepedia.com/Skin_voicelines":
+      case "https://smite.fandom.com/wiki/Skin_voicelines":
         textField.setText(
             "Here are all the non-default voicepacks. Click on a button to load the skin's voicepack.");
         break;
@@ -290,22 +290,15 @@ public class LeftPanel extends JPanel {
           // TEXT
           String imgTextString = images.get(i).parent().parent().text().trim();
           imgTextString = imgTextString.substring(0, imgTextString.length() - substring);
-          //JLabel imgIconLabel = new JLabel(imgIcon);
-          //JLabel imgTextLabel = new JLabel(imgTextString);
-          //imgTextLabel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
           JButton imgButton = new JButton();
           imgButton.setText(imgTextString);
           imgButton.setIcon(imgIcon);
           imgButton.setHorizontalAlignment(SwingConstants.LEFT);
-          //imgButton.setLayout(new BorderLayout());
-          //imgButton.add(imgIconLabel, BorderLayout.WEST);
-          //imgButton.add(imgTextLabel, BorderLayout.CENTER);
           imgButton.setPreferredSize(new Dimension(0, 42));
           componentHeight = 42;
-          //imgButton.setUI(new BasicButtonUI());
 
           // SECTION
-          if (pageAddress.equals("https://smite.gamepedia.com/Skin_voicelines")) {
+          if (pageAddress.equals("https://smite.fandom.com/wiki/Skin_voicelines")) {
             sectionName = images.get(i).parent().parent().parent().previousElementSibling()
                 .text();
             sectionName = sectionName.substring(0, sectionName.indexOf("["));
@@ -334,15 +327,15 @@ public class LeftPanel extends JPanel {
           if (imgLink.contains("?action=")) {
             imgButton.setEnabled(false);
           }
-          String finalImgLink = "https://smite.gamepedia.com" + imgLink;
+          String finalImgLink = "https://smite.fandom.com" + imgLink;
           imgButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+              System.out.println(finalImgLink);
               frame.performSearch(finalImgLink);
             }
           });
-          //XXXXXXXX: Border issue
-          //imgButton.setBorder(new EmptyBorder(0,0,0,5));
+
           buttonsPanel.add(imgButton);
           elementsCounter++;
           componentsList.add(imgButton);
@@ -906,6 +899,7 @@ public class LeftPanel extends JPanel {
           thirdSectionComparison = thirdSection;
         }
 
+        // Might be of use later
         VoicelineBundle voicelineBundle = new VoicelineBundle((JButton) componentsList.get(i),
             firstSection, secondSection, thirdSection);
         bundlesList.add(voicelineBundle);

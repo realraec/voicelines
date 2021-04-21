@@ -38,8 +38,8 @@ public class VGSMain {
     //url = "https://smite.gamepedia.com/Unbreakable_Anhur_voicelines";
     //url = "https://smite.gamepedia.com/Winds_of_Change_Kukulkan_voicelines";
     //url = "https://smite.gamepedia.com/King_Arthur_voicelines";
-    url = "https://smite.gamepedia.com/Chang'e_voicelines";
-    url = "https://smite.gamepedia.com/Divine_Dragon_Bellona_voicelines";
+    //url = "https://smite.gamepedia.com/Chang'e_voicelines";
+    //url = "https://smite.gamepedia.com/Divine_Dragon_Bellona_voicelines";
     url = "https://smite.gamepedia.com/Ra%27merica_voicelines";
 
     System.out.println("Fetching " + url);
